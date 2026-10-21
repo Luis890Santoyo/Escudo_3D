@@ -71,6 +71,14 @@
   button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
   button:focus-visible, .sw:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   button:disabled { opacity: .45; cursor: progress; }
+  .ctl { grid-template-columns: 1fr; gap: 10px; }
+  .sws { display: flex; flex-wrap: wrap; gap: 10px; }
+  button.sw { position: relative; width: 38px; height: 38px; min-width: 0; padding: 0; border: 0; border-radius: 50%; background: linear-gradient(135deg, var(--d) 50%, var(--l) 50%); transition: transform .12s, box-shadow .12s; }
+  button.sw:hover { background: linear-gradient(135deg, var(--d) 50%, var(--l) 50%); transform: scale(1.08); }
+  button.sw[aria-checked="true"] { box-shadow: 0 0 0 3px var(--panel), 0 0 0 5px var(--l); }
+  button.sw[aria-checked="true"]::after { content: ""; position: absolute; inset: 9px; border-radius: 50%; background: #fff; }
+  button.sw[aria-checked="true"]::before { content: ""; position: absolute; z-index: 1; left: 14px; top: 13px; width: 9px; height: 5px; border-left: 2px solid var(--d); border-bottom: 2px solid var(--d); transform: rotate(-45deg); }
+  button.sw:disabled { cursor: progress; }
   .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--fg) 40%, transparent); background: #fff; }
   dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: .88rem; }
   dt { color: var(--muted); }
@@ -111,15 +119,15 @@
         <h2 id="h-ctl">Taller de materiales</h2>
         <div class="ctl">
           <div><b>Color de la madera</b><small id="wood-txt">Roble natural.</small></div>
-          <button id="b-wood" type="button" disabled><span class="dot" id="wood-dot"></span>Cambiar</button>
+          <div class="sws" id="sw-wood" role="radiogroup" aria-label="Color de la madera"></div>
         </div>
         <div class="ctl">
           <div><b>Color del acero</b><small id="steel-txt">Acero natural.</small></div>
-          <button id="b-steel" type="button" disabled><span class="dot" id="steel-dot"></span>Cambiar</button>
+          <div class="sws" id="sw-steel" role="radiogroup" aria-label="Color del acero"></div>
         </div>
         <div class="ctl">
           <div><b>Color del bronce</b><small id="bronze-txt">Bronce natural.</small></div>
-          <button id="b-bronze" type="button" disabled><span class="dot" id="bronze-dot"></span>Cambiar</button>
+          <div class="sws" id="sw-bronze" role="radiogroup" aria-label="Color del bronce"></div>
         </div>
       </section>
 
@@ -151,29 +159,47 @@
   const mv = document.getElementById('mv');
   const $ = (id) => document.getElementById(id);
   const NAMES = { wood: 'Madera', steel: 'Acero', bronze: 'Bronce' };
+  // c: factor sobre el Base Color · css: [sombra, luz] para la muestra
   const TINTS = {
     wood: [
-      { n: 'Roble natural', c: [1, 1, 1], css: '#a77b4d' },
-      { n: 'Nogal oscuro', c: [0.55, 0.42, 0.34], css: '#5e4332' },
-      { n: 'Caoba rojiza', c: [1.0, 0.55, 0.45], css: '#b0553f' },
-      { n: 'Madera ennegrecida', c: [0.3, 0.3, 0.32], css: '#3b3b3e' },
+      { n: 'Roble natural', c: [1, 1, 1], css: ['#7a5632', '#b98a58'] },
+      { n: 'Nogal oscuro', c: [0.55, 0.42, 0.34], css: ['#3f2c20', '#6b4a36'] },
+      { n: 'Caoba rojiza', c: [1.0, 0.55, 0.45], css: ['#7c3524', '#c25a40'] },
+      { n: 'Pino claro', c: [1.25, 1.2, 1.05], css: ['#c9ab7c', '#ecd6ac'] },
+      { n: 'Madera verdosa', c: [0.6, 0.85, 0.7], css: ['#3d5a45', '#6f9a7c'] },
+      { n: 'Madera ennegrecida', c: [0.3, 0.3, 0.32], css: ['#1c1c1e', '#4a4543'] },
     ],
     steel: [
-      { n: 'Acero natural', c: [1, 1, 1], css: '#c9ced6' },
-      { n: 'Acero azul templado', c: [0.55, 0.68, 1.0], css: '#6f92d6' },
-      { n: 'Hierro forjado negro', c: [0.26, 0.26, 0.29], css: '#3a3a3f' },
-      { n: 'Acero cobrizo', c: [1.0, 0.62, 0.48], css: '#d08a6c' },
+      { n: 'Acero natural', c: [1, 1, 1], css: ['#9a9fa8', '#d6dae0'] },
+      { n: 'Acero azul templado', c: [0.55, 0.68, 1.0], css: ['#4a6aa5', '#86a6dc'] },
+      { n: 'Acero pavonado', c: [0.35, 0.55, 0.6], css: ['#1f3a40', '#5aa0a6'] },
+      { n: 'Hierro forjado negro', c: [0.26, 0.26, 0.29], css: ['#222226', '#4c4c52'] },
+      { n: 'Acero cobrizo', c: [1.0, 0.62, 0.48], css: ['#a9604a', '#e0a08a'] },
+      { n: 'Acero rojo', c: [1.0, 0.35, 0.3], css: ['#a01e18', '#e3392b'] },
     ],
     bronze: [
-      { n: 'Bronce natural', c: [1, 1, 1], css: '#b87a3d' },
-      { n: 'Oro', c: [1.0, 0.86, 0.45], css: '#e0b640' },
-      { n: 'Cobre rojizo', c: [1.0, 0.55, 0.45], css: '#c4623f' },
-      { n: 'Pátina verdosa', c: [0.5, 0.9, 0.8], css: '#5fae98' },
+      { n: 'Bronce natural', c: [1, 1, 1], css: ['#8a5524', '#d4964f'] },
+      { n: 'Oro', c: [1.0, 0.86, 0.45], css: ['#b08a1c', '#f0cd54'] },
+      { n: 'Cobre rojizo', c: [1.0, 0.55, 0.45], css: ['#8f3f26', '#d9704c'] },
+      { n: 'Pátina verdosa', c: [0.5, 0.9, 0.8], css: ['#3f7d6c', '#7fc9b5'] },
+      { n: 'Latón pálido', c: [1.2, 1.15, 0.9], css: ['#aaa07a', '#dcd5b0'] },
+      { n: 'Bronce oscuro', c: [0.5, 0.42, 0.38], css: ['#2e2220', '#5d4a42'] },
     ],
   };
-  const mats = {}, idx = { wood: 0, steel: 0, bronze: 0 };
+  const mats = {};
 
-  for (const k in TINTS) $(k + '-dot').style.background = TINTS[k][0].css;
+  for (const k in TINTS) {
+    const box = $('sw-' + k);
+    TINTS[k].forEach((t, i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'sw'; b.disabled = true;
+      b.setAttribute('role', 'radio'); b.setAttribute('aria-label', t.n); b.title = t.n;
+      b.setAttribute('aria-checked', i === 0);
+      b.style.setProperty('--d', t.css[0]); b.style.setProperty('--l', t.css[1]);
+      b.onclick = () => pick(k, i);
+      box.appendChild(b);
+    });
+  }
 
   mv.addEventListener('progress', (e) => {
     const p = e.detail.totalProgress; const bar = $('bar');
@@ -183,15 +209,15 @@
   mv.addEventListener('load', () => {
     for (const k in NAMES) {
       mats[k] = mv.model.materials.find((m) => m.name === NAMES[k]);
-      $('b-' + k).disabled = false;
-      $('b-' + k).onclick = () => nextTint(k);
+      $('sw-' + k).querySelectorAll('.sw').forEach((b) => (b.disabled = false));
     }
   });
 
-  function nextTint(k) {
-    idx[k] = (idx[k] + 1) % TINTS[k].length; const t = TINTS[k][idx[k]];
+  function pick(k, i) {
+    const t = TINTS[k][i];
     mats[k].pbrMetallicRoughness.setBaseColorFactor([...t.c, 1]);
-    $(k + '-txt').textContent = t.n + '.'; $(k + '-dot').style.background = t.css;
+    $(k + '-txt').textContent = t.n + '.';
+    $('sw-' + k).querySelectorAll('.sw').forEach((b, j) => b.setAttribute('aria-checked', j === i));
   }
 })();
 </script>
