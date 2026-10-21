@@ -110,16 +110,16 @@
       <section class="card" aria-labelledby="h-ctl">
         <h2 id="h-ctl">Taller de materiales</h2>
         <div class="ctl">
-          <div><b>Estado de la superficie</b><small id="state-txt">Limpio: juego de texturas nuevo.</small></div>
-          <button id="b-wear" type="button" aria-pressed="false" disabled>Desgastar</button>
+          <div><b>Color de la madera</b><small id="wood-txt">Roble natural.</small></div>
+          <button id="b-wood" type="button" disabled><span class="dot" id="wood-dot"></span>Cambiar</button>
         </div>
         <div class="ctl">
           <div><b>Color del acero</b><small id="steel-txt">Acero natural.</small></div>
           <button id="b-steel" type="button" disabled><span class="dot" id="steel-dot"></span>Cambiar</button>
         </div>
         <div class="ctl">
-          <div><b>Normal map del bronce</b><small id="norm-txt">Activado: el martillado da relieve.</small></div>
-          <button id="b-norm" type="button" aria-pressed="true" disabled>Activado</button>
+          <div><b>Color del bronce</b><small id="bronze-txt">Bronce natural.</small></div>
+          <button id="b-bronze" type="button" disabled><span class="dot" id="bronze-dot"></span>Cambiar</button>
         </div>
       </section>
 
@@ -150,15 +150,30 @@
 (() => {
   const mv = document.getElementById('mv');
   const $ = (id) => document.getElementById(id);
-  const wearBtn = $('b-wear'), steelBtn = $('b-steel'), normBtn = $('b-norm');
   const NAMES = { wood: 'Madera', steel: 'Acero', bronze: 'Bronce' };
-  const STEEL = [
-    { n: 'Acero natural', c: [1, 1, 1], css: '#c9ced6' },
-    { n: 'Acero azul templado', c: [0.55, 0.68, 1.0], css: '#6f92d6' },
-    { n: 'Hierro forjado negro', c: [0.26, 0.26, 0.29], css: '#3a3a3f' },
-    { n: 'Acero cobrizo', c: [1.0, 0.62, 0.48], css: '#d08a6c' },
-  ];
-  let mats = {}, orig = {}, worn = {}, wear = false, steelIdx = 0, bronzeNormal = true, loadingWorn = null;
+  const TINTS = {
+    wood: [
+      { n: 'Roble natural', c: [1, 1, 1], css: '#a77b4d' },
+      { n: 'Nogal oscuro', c: [0.55, 0.42, 0.34], css: '#5e4332' },
+      { n: 'Caoba rojiza', c: [1.0, 0.55, 0.45], css: '#b0553f' },
+      { n: 'Madera ennegrecida', c: [0.3, 0.3, 0.32], css: '#3b3b3e' },
+    ],
+    steel: [
+      { n: 'Acero natural', c: [1, 1, 1], css: '#c9ced6' },
+      { n: 'Acero azul templado', c: [0.55, 0.68, 1.0], css: '#6f92d6' },
+      { n: 'Hierro forjado negro', c: [0.26, 0.26, 0.29], css: '#3a3a3f' },
+      { n: 'Acero cobrizo', c: [1.0, 0.62, 0.48], css: '#d08a6c' },
+    ],
+    bronze: [
+      { n: 'Bronce natural', c: [1, 1, 1], css: '#b87a3d' },
+      { n: 'Oro', c: [1.0, 0.86, 0.45], css: '#e0b640' },
+      { n: 'Cobre rojizo', c: [1.0, 0.55, 0.45], css: '#c4623f' },
+      { n: 'Pátina verdosa', c: [0.5, 0.9, 0.8], css: '#5fae98' },
+    ],
+  };
+  const mats = {}, idx = { wood: 0, steel: 0, bronze: 0 };
+
+  for (const k in TINTS) $(k + '-dot').style.background = TINTS[k][0].css;
 
   mv.addEventListener('progress', (e) => {
     const p = e.detail.totalProgress; const bar = $('bar');
@@ -166,61 +181,17 @@
   });
 
   mv.addEventListener('load', () => {
-    for (const k in NAMES) mats[k] = mv.model.materials.find((m) => m.name === NAMES[k]);
-    for (const k in mats) {
-      const m = mats[k];
-      orig[k] = {
-        base: m.pbrMetallicRoughness.baseColorTexture.texture,
-        mr: m.pbrMetallicRoughness.metallicRoughnessTexture.texture,
-        normal: m.normalTexture.texture,
-      };
+    for (const k in NAMES) {
+      mats[k] = mv.model.materials.find((m) => m.name === NAMES[k]);
+      $('b-' + k).disabled = false;
+      $('b-' + k).onclick = () => nextTint(k);
     }
-    [wearBtn, steelBtn, normBtn].forEach((b) => (b.disabled = false));
-    steelBtn.onclick = nextSteel; normBtn.onclick = toggleNormal; wearBtn.onclick = toggleWear;
   });
 
-  async function loadWorn() {
-    if (worn.wood) return;
-    if (!loadingWorn) {
-      loadingWorn = Promise.all(Object.keys(NAMES).map(async (k) => {
-        const u = (t) => `textures/${k}_worn_${t}.jpg`;
-        const [base, mr, normal] = await Promise.all([mv.createTexture(u('basecolor')), mv.createTexture(u('mr')), mv.createTexture(u('normal'))]);
-        worn[k] = { base, mr, normal };
-      }));
-    }
-    await loadingWorn;
-  }
-
-  function apply(k) {
-    const set = (wear ? worn : orig)[k]; const m = mats[k];
-    m.pbrMetallicRoughness.baseColorTexture.setTexture(set.base);
-    m.pbrMetallicRoughness.metallicRoughnessTexture.setTexture(set.mr);
-    m.normalTexture.setTexture(k === 'bronze' && !bronzeNormal ? null : set.normal);
-  }
-
-  async function toggleWear() {
-    wearBtn.disabled = true;
-    try {
-      if (!wear) await loadWorn();
-      wear = !wear;
-      Object.keys(NAMES).forEach(apply);
-      wearBtn.setAttribute('aria-pressed', wear); wearBtn.textContent = wear ? 'Restaurar' : 'Desgastar';
-      $('state-txt').textContent = wear ? 'Desgastado: óxido, pátina y rayones.' : 'Limpio: juego de texturas nuevo.';
-    } catch (e) { $('state-txt').textContent = 'No se pudieron cargar las texturas desgastadas.'; }
-    wearBtn.disabled = false;
-  }
-
-  function nextSteel() {
-    steelIdx = (steelIdx + 1) % STEEL.length; const s = STEEL[steelIdx];
-    mats.steel.pbrMetallicRoughness.setBaseColorFactor([...s.c, 1]);
-    $('steel-txt').textContent = s.n + '.'; $('steel-dot').style.background = s.css;
-  }
-  $('steel-dot').style.background = STEEL[0].css;
-
-  function toggleNormal() {
-    bronzeNormal = !bronzeNormal; apply('bronze');
-    normBtn.setAttribute('aria-pressed', bronzeNormal); normBtn.textContent = bronzeNormal ? 'Activado' : 'Desactivado';
-    $('norm-txt').textContent = bronzeNormal ? 'Activado: el martillado da relieve.' : 'Desactivado: el bronce queda liso.';
+  function nextTint(k) {
+    idx[k] = (idx[k] + 1) % TINTS[k].length; const t = TINTS[k][idx[k]];
+    mats[k].pbrMetallicRoughness.setBaseColorFactor([...t.c, 1]);
+    $(k + '-txt').textContent = t.n + '.'; $(k + '-dot').style.background = t.css;
   }
 })();
 </script>
