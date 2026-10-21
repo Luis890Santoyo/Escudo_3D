@@ -73,11 +73,11 @@
   button:disabled { opacity: .45; cursor: progress; }
   .ctl { grid-template-columns: 1fr; gap: 10px; }
   .sws { display: flex; flex-wrap: wrap; gap: 10px; }
-  button.sw { position: relative; width: 38px; height: 38px; min-width: 0; padding: 0; border: 0; border-radius: 50%; background: linear-gradient(135deg, var(--d) 50%, var(--l) 50%); transition: transform .12s, box-shadow .12s; }
-  button.sw:hover { background: linear-gradient(135deg, var(--d) 50%, var(--l) 50%); transform: scale(1.08); }
-  button.sw[aria-checked="true"] { box-shadow: 0 0 0 3px var(--panel), 0 0 0 5px var(--l); }
-  button.sw[aria-checked="true"]::after { content: ""; position: absolute; inset: 9px; border-radius: 50%; background: #fff; }
-  button.sw[aria-checked="true"]::before { content: ""; position: absolute; z-index: 1; left: 14px; top: 13px; width: 9px; height: 5px; border-left: 2px solid var(--d); border-bottom: 2px solid var(--d); transform: rotate(-45deg); }
+  button.sw { position: relative; width: 52px; height: 52px; min-width: 0; padding: 0; border: 0; border-radius: 50%; background: var(--panel) center / cover; transition: transform .12s, box-shadow .12s; }
+  button.sw:hover { background-color: var(--panel); transform: scale(1.08); }
+  button.sw[aria-checked="true"] { box-shadow: 0 0 0 3px var(--panel), 0 0 0 5px var(--accent); }
+  button.sw[aria-checked="true"]::after { content: ""; position: absolute; inset: 14px; border-radius: 50%; background: #fff; }
+  button.sw[aria-checked="true"]::before { content: ""; position: absolute; z-index: 1; left: 19px; top: 19px; width: 9px; height: 5px; border-left: 2px solid var(--accent); border-bottom: 2px solid var(--accent); transform: rotate(-45deg); }
   button.sw:disabled { cursor: progress; }
   .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--fg) 40%, transparent); background: #fff; }
   dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: .88rem; }
@@ -118,16 +118,16 @@
       <section class="card" aria-labelledby="h-ctl">
         <h2 id="h-ctl">Taller de materiales</h2>
         <div class="ctl">
-          <div><b>Color de la madera</b><small id="wood-txt">Roble natural.</small></div>
-          <div class="sws" id="sw-wood" role="radiogroup" aria-label="Color de la madera"></div>
+          <div><b>Textura de la madera</b><small id="wood-txt">Roble limpio.</small></div>
+          <div class="sws" id="sw-wood" role="radiogroup" aria-label="Textura de la madera"></div>
         </div>
         <div class="ctl">
-          <div><b>Color del acero</b><small id="steel-txt">Acero natural.</small></div>
-          <div class="sws" id="sw-steel" role="radiogroup" aria-label="Color del acero"></div>
+          <div><b>Textura del acero</b><small id="steel-txt">Acero cepillado.</small></div>
+          <div class="sws" id="sw-steel" role="radiogroup" aria-label="Textura del acero"></div>
         </div>
         <div class="ctl">
-          <div><b>Color del bronce</b><small id="bronze-txt">Bronce natural.</small></div>
-          <div class="sws" id="sw-bronze" role="radiogroup" aria-label="Color del bronce"></div>
+          <div><b>Textura del bronce</b><small id="bronze-txt">Bronce martillado.</small></div>
+          <div class="sws" id="sw-bronze" role="radiogroup" aria-label="Textura del bronce"></div>
         </div>
       </section>
 
@@ -159,43 +159,22 @@
   const mv = document.getElementById('mv');
   const $ = (id) => document.getElementById(id);
   const NAMES = { wood: 'Madera', steel: 'Acero', bronze: 'Bronce' };
-  // c: factor sobre el Base Color · css: [sombra, luz] para la muestra
-  const TINTS = {
-    wood: [
-      { n: 'Roble natural', c: [1, 1, 1], css: ['#7a5632', '#b98a58'] },
-      { n: 'Nogal oscuro', c: [0.55, 0.42, 0.34], css: ['#3f2c20', '#6b4a36'] },
-      { n: 'Caoba rojiza', c: [1.0, 0.55, 0.45], css: ['#7c3524', '#c25a40'] },
-      { n: 'Pino claro', c: [1.25, 1.2, 1.05], css: ['#c9ab7c', '#ecd6ac'] },
-      { n: 'Madera verdosa', c: [0.6, 0.85, 0.7], css: ['#3d5a45', '#6f9a7c'] },
-      { n: 'Madera ennegrecida', c: [0.3, 0.3, 0.32], css: ['#1c1c1e', '#4a4543'] },
-    ],
-    steel: [
-      { n: 'Acero natural', c: [1, 1, 1], css: ['#9a9fa8', '#d6dae0'] },
-      { n: 'Acero azul templado', c: [0.55, 0.68, 1.0], css: ['#4a6aa5', '#86a6dc'] },
-      { n: 'Acero pavonado', c: [0.35, 0.55, 0.6], css: ['#1f3a40', '#5aa0a6'] },
-      { n: 'Hierro forjado negro', c: [0.26, 0.26, 0.29], css: ['#222226', '#4c4c52'] },
-      { n: 'Acero cobrizo', c: [1.0, 0.62, 0.48], css: ['#a9604a', '#e0a08a'] },
-      { n: 'Acero rojo', c: [1.0, 0.35, 0.3], css: ['#a01e18', '#e3392b'] },
-    ],
-    bronze: [
-      { n: 'Bronce natural', c: [1, 1, 1], css: ['#8a5524', '#d4964f'] },
-      { n: 'Oro', c: [1.0, 0.86, 0.45], css: ['#b08a1c', '#f0cd54'] },
-      { n: 'Cobre rojizo', c: [1.0, 0.55, 0.45], css: ['#8f3f26', '#d9704c'] },
-      { n: 'Pátina verdosa', c: [0.5, 0.9, 0.8], css: ['#3f7d6c', '#7fc9b5'] },
-      { n: 'Latón pálido', c: [1.2, 1.15, 0.9], css: ['#aaa07a', '#dcd5b0'] },
-      { n: 'Bronce oscuro', c: [0.5, 0.42, 0.38], css: ['#2e2220', '#5d4a42'] },
-    ],
+  // Tres juegos de texturas PBR por material: clean (el del GLB), worn y alt
+  const SETS = {
+    wood: [['clean', 'Roble limpio'], ['worn', 'Roble desgastado'], ['alt', 'Nogal barnizado']],
+    steel: [['clean', 'Acero cepillado'], ['worn', 'Acero oxidado'], ['alt', 'Acero damasco']],
+    bronze: [['clean', 'Bronce martillado'], ['worn', 'Bronce con pátina'], ['alt', 'Oro con escamas']],
   };
-  const mats = {};
+  const mats = {}, orig = {}, loaded = {};
 
-  for (const k in TINTS) {
+  for (const k in SETS) {
     const box = $('sw-' + k);
-    TINTS[k].forEach((t, i) => {
+    SETS[k].forEach(([s, name], i) => {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'sw'; b.disabled = true;
-      b.setAttribute('role', 'radio'); b.setAttribute('aria-label', t.n); b.title = t.n;
+      b.setAttribute('role', 'radio'); b.setAttribute('aria-label', name); b.title = name;
       b.setAttribute('aria-checked', i === 0);
-      b.style.setProperty('--d', t.css[0]); b.style.setProperty('--l', t.css[1]);
+      b.style.backgroundImage = `url(textures/thumbs/${k}_${s}.jpg)`;
       b.onclick = () => pick(k, i);
       box.appendChild(b);
     });
@@ -208,16 +187,39 @@
 
   mv.addEventListener('load', () => {
     for (const k in NAMES) {
-      mats[k] = mv.model.materials.find((m) => m.name === NAMES[k]);
+      const m = mats[k] = mv.model.materials.find((x) => x.name === NAMES[k]);
+      orig[k] = {
+        base: m.pbrMetallicRoughness.baseColorTexture.texture,
+        mr: m.pbrMetallicRoughness.metallicRoughnessTexture.texture,
+        normal: m.normalTexture.texture,
+      };
       $('sw-' + k).querySelectorAll('.sw').forEach((b) => (b.disabled = false));
     }
   });
 
-  function pick(k, i) {
-    const t = TINTS[k][i];
-    mats[k].pbrMetallicRoughness.setBaseColorFactor([...t.c, 1]);
-    $(k + '-txt').textContent = t.n + '.';
-    $('sw-' + k).querySelectorAll('.sw').forEach((b, j) => b.setAttribute('aria-checked', j === i));
+  async function texSet(k, s) {
+    if (s === 'clean') return orig[k];
+    const key = k + s;
+    if (!loaded[key]) {
+      const u = (t) => `textures/${k}_${s}_${t}.jpg`;
+      loaded[key] = Promise.all([mv.createTexture(u('basecolor')), mv.createTexture(u('mr')), mv.createTexture(u('normal'))])
+        .then(([base, mr, normal]) => ({ base, mr, normal }));
+    }
+    return loaded[key];
+  }
+
+  async function pick(k, i) {
+    const [s, name] = SETS[k][i]; const box = $('sw-' + k);
+    box.querySelectorAll('.sw').forEach((b) => (b.disabled = true));
+    try {
+      const t = await texSet(k, s); const m = mats[k];
+      m.pbrMetallicRoughness.baseColorTexture.setTexture(t.base);
+      m.pbrMetallicRoughness.metallicRoughnessTexture.setTexture(t.mr);
+      m.normalTexture.setTexture(t.normal);
+      $(k + '-txt').textContent = name + '.';
+      box.querySelectorAll('.sw').forEach((b, j) => b.setAttribute('aria-checked', j === i));
+    } catch (e) { $(k + '-txt').textContent = 'No se pudo cargar el juego de texturas.'; }
+    box.querySelectorAll('.sw').forEach((b) => (b.disabled = false));
   }
 })();
 </script>
