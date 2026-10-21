@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light;padding-block:env(safe-area-inset-top,0px) env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Escudo Medieval PBR</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
+<style>
+  /* Layout: visor 3D grande a la izquierda, panel de forja (controles + ficha técnica) a la derecha; una columna en móvil. */
+  :root {
+    --bg: #e9e5df;          /* piedra clara */
+    --panel: #f6f3ee;
+    --fg: #23211f;
+    --muted: #6b655d;
+    --line: #cfc8bd;
+    --accent: #9a5b1f;      /* bronce */
+    --accent-fg: #fff8ee;
+    --stage-a: #f3efe8;
+    --stage-b: #cfc7ba;
+    --font-display: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+    --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #15171a; --panel: #1d2024; --fg: #ece7df; --muted: #9a958c; --line: #30343a;
+      --accent: #d89a52; --accent-fg: #1a1208; --stage-a: #2b3037; --stage-b: #121417;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #15171a; --panel: #1d2024; --fg: #ece7df; --muted: #9a958c; --line: #30343a;
+    --accent: #d89a52; --accent-fg: #1a1208; --stage-a: #2b3037; --stage-b: #121417;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.5;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 28px 40px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 20px; }
+  header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 24px; }
+  h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 5vw, 3.1rem); line-height: 1; margin: 0; letter-spacing: .01em; text-wrap: balance; }
+  header p { margin: 0; color: var(--muted); font-size: .9rem; max-width: 46ch; }
+  .grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+  .stage { position: relative; border: 1px solid var(--line); border-radius: 6px; overflow: hidden;
+    background: radial-gradient(120% 90% at 50% 25%, var(--stage-a), var(--stage-b)); }
+  model-viewer { width: 100%; height: min(72vh, 640px); min-height: 380px; --poster-color: transparent; background: transparent; display: block; }
+  .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--accent); transform-origin: left; transform: scaleX(0); transition: opacity .4s; }
+  .hint { position: absolute; left: 12px; bottom: 10px; font: 400 11px var(--font-mono); color: var(--muted); letter-spacing: .04em; pointer-events: none; }
+  .hs { background: var(--panel); color: var(--fg); border: 1px solid var(--line); border-radius: 3px; padding: 2px 8px; font: 500 11px var(--font-mono); letter-spacing: .04em; white-space: nowrap; transform: translate(10px, -50%); }
+  .hs::before { content: ""; position: absolute; left: -10px; top: 50%; width: 10px; height: 1px; background: var(--accent); }
+  aside { display: grid; gap: 16px; min-width: 0; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 16px; min-width: 0; }
+  h2 { font: 500 11px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+  .ctl { display: grid; grid-template-columns: 1fr auto; gap: 4px 14px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
+  .ctl:first-of-type { border-top: 0; padding-top: 0; }
+  .ctl b { font-weight: 600; display: block; }
+  .ctl small { color: var(--muted); display: block; font-size: .82rem; line-height: 1.35; }
+  button { font: 500 .88rem var(--font-body); color: var(--fg); background: transparent; border: 1px solid var(--fg); border-radius: 3px; padding: 8px 14px; cursor: pointer; min-width: 128px; transition: background .15s, color .15s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  button:hover { background: var(--fg); color: var(--bg); }
+  button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-fg); }
+  button:focus-visible, .sw:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button:disabled { opacity: .45; cursor: progress; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--fg) 40%, transparent); background: #fff; }
+  dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: .88rem; }
+  dt { color: var(--muted); }
+  dd { margin: 0; font-family: var(--font-mono); font-size: .82rem; text-align: right; }
+  table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  th, td { text-align: left; padding: 6px 8px 6px 0; border-top: 1px solid var(--line); font-weight: 400; }
+  th { color: var(--muted); font: 500 10px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; border-top: 0; }
+  td:first-child { font-weight: 600; }
+  td:not(:first-child) { font-family: var(--font-mono); font-size: .78rem; }
+  .scroll { overflow-x: auto; }
+  .note { color: var(--muted); font-size: .8rem; margin: 10px 0 0; }
+  @media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } model-viewer { height: 56vh; min-height: 340px; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Escudo Medieval PBR</h1>
+    <p>Modelo 3D de 590 triángulos con tres materiales. Gira, acerca y cambia los materiales en tiempo real.</p>
+  </header>
+
+  <div class="grid">
+    <div class="stage">
+      <model-viewer id="mv" src="escudo.glb" alt="Escudo medieval de madera con aro de acero y umbo de bronce"
+        camera-controls touch-action="pan-y" auto-rotate auto-rotate-delay="2500" rotation-per-second="14deg"
+        camera-orbit="-25deg 78deg auto" min-camera-orbit="auto auto 3m" max-camera-orbit="auto auto 14m"
+        field-of-view="30deg" shadow-intensity="1.1" shadow-softness="0.9" exposure="1.05" environment-image="neutral" interaction-prompt="none">
+        <div class="hs" slot="hotspot-wood" data-position="0.9m 0.75m 0.4m" data-normal="0 0 1">Madera</div>
+        <div class="hs" slot="hotspot-steel" data-position="1.2m 0m 0.53m" data-normal="0 0 1">Acero</div>
+        <div class="hs" slot="hotspot-bronze" data-position="0m 0m 0.96m" data-normal="0 0 1">Bronce</div>
+        <div class="bar" id="bar" slot="progress-bar"></div>
+      </model-viewer>
+      <span class="hint">ARRASTRA PARA GIRAR · RUEDA O PELLIZCO PARA ACERCAR</span>
+    </div>
+
+    <aside>
+      <section class="card" aria-labelledby="h-ctl">
+        <h2 id="h-ctl">Taller de materiales</h2>
+        <div class="ctl">
+          <div><b>Estado de la superficie</b><small id="state-txt">Limpio: juego de texturas nuevo.</small></div>
+          <button id="b-wear" type="button" aria-pressed="false" disabled>Desgastar</button>
+        </div>
+        <div class="ctl">
+          <div><b>Color del acero</b><small id="steel-txt">Acero natural.</small></div>
+          <button id="b-steel" type="button" disabled><span class="dot" id="steel-dot"></span>Cambiar</button>
+        </div>
+        <div class="ctl">
+          <div><b>Normal map del bronce</b><small id="norm-txt">Activado: el martillado da relieve.</small></div>
+          <button id="b-norm" type="button" aria-pressed="true" disabled>Activado</button>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="h-spec">
+        <h2 id="h-spec">Ficha técnica</h2>
+        <dl>
+          <dt>Triángulos</dt><dd>590</dd>
+          <dt>Mallas / materiales</dt><dd>3 / 3</dd>
+          <dt>Texturas</dt><dd>1024 × 1024 · JPG</dd>
+          <dt>Flujo</dt><dd>PBR metal / rugosidad</dd>
+          <dt>Archivo</dt><dd>escudo.glb · 1.2 MB</dd>
+        </dl>
+        <div class="scroll" style="margin-top:12px">
+          <table>
+            <tr><th>Material</th><th>Triáng.</th><th>Metal</th></tr>
+            <tr><td>Madera</td><td>20</td><td>0.0</td></tr>
+            <tr><td>Acero</td><td>84</td><td>1.0</td></tr>
+            <tr><td>Bronce</td><td>486</td><td>1.0</td></tr>
+          </table>
+        </div>
+        <p class="note">Cada material usa Base Color, Roughness, Metallic y Normal. En el GLB, Roughness y Metallic van empaquetados en un solo mapa, como pide glTF.</p>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<script>
+(() => {
+  const mv = document.getElementById('mv');
+  const $ = (id) => document.getElementById(id);
+  const wearBtn = $('b-wear'), steelBtn = $('b-steel'), normBtn = $('b-norm');
+  const NAMES = { wood: 'Madera', steel: 'Acero', bronze: 'Bronce' };
+  const STEEL = [
+    { n: 'Acero natural', c: [1, 1, 1], css: '#c9ced6' },
+    { n: 'Acero azul templado', c: [0.55, 0.68, 1.0], css: '#6f92d6' },
+    { n: 'Hierro forjado negro', c: [0.26, 0.26, 0.29], css: '#3a3a3f' },
+    { n: 'Acero cobrizo', c: [1.0, 0.62, 0.48], css: '#d08a6c' },
+  ];
+  let mats = {}, orig = {}, worn = {}, wear = false, steelIdx = 0, bronzeNormal = true, loadingWorn = null;
+
+  mv.addEventListener('progress', (e) => {
+    const p = e.detail.totalProgress; const bar = $('bar');
+    bar.style.transform = `scaleX(${p})`; bar.style.opacity = p >= 1 ? 0 : 1;
+  });
+
+  mv.addEventListener('load', () => {
+    for (const k in NAMES) mats[k] = mv.model.materials.find((m) => m.name === NAMES[k]);
+    for (const k in mats) {
+      const m = mats[k];
+      orig[k] = {
+        base: m.pbrMetallicRoughness.baseColorTexture.texture,
+        mr: m.pbrMetallicRoughness.metallicRoughnessTexture.texture,
+        normal: m.normalTexture.texture,
+      };
+    }
+    [wearBtn, steelBtn, normBtn].forEach((b) => (b.disabled = false));
+    steelBtn.onclick = nextSteel; normBtn.onclick = toggleNormal; wearBtn.onclick = toggleWear;
+  });
+
+  async function loadWorn() {
+    if (worn.wood) return;
+    if (!loadingWorn) {
+      loadingWorn = Promise.all(Object.keys(NAMES).map(async (k) => {
+        const u = (t) => `textures/${k}_worn_${t}.jpg`;
+        const [base, mr, normal] = await Promise.all([mv.createTexture(u('basecolor')), mv.createTexture(u('mr')), mv.createTexture(u('normal'))]);
+        worn[k] = { base, mr, normal };
+      }));
+    }
+    await loadingWorn;
+  }
+
+  function apply(k) {
+    const set = (wear ? worn : orig)[k]; const m = mats[k];
+    m.pbrMetallicRoughness.baseColorTexture.setTexture(set.base);
+    m.pbrMetallicRoughness.metallicRoughnessTexture.setTexture(set.mr);
+    m.normalTexture.setTexture(k === 'bronze' && !bronzeNormal ? null : set.normal);
+  }
+
+  async function toggleWear() {
+    wearBtn.disabled = true;
+    try {
+      if (!wear) await loadWorn();
+      wear = !wear;
+      Object.keys(NAMES).forEach(apply);
+      wearBtn.setAttribute('aria-pressed', wear); wearBtn.textContent = wear ? 'Restaurar' : 'Desgastar';
+      $('state-txt').textContent = wear ? 'Desgastado: óxido, pátina y rayones.' : 'Limpio: juego de texturas nuevo.';
+    } catch (e) { $('state-txt').textContent = 'No se pudieron cargar las texturas desgastadas.'; }
+    wearBtn.disabled = false;
+  }
+
+  function nextSteel() {
+    steelIdx = (steelIdx + 1) % STEEL.length; const s = STEEL[steelIdx];
+    mats.steel.pbrMetallicRoughness.setBaseColorFactor([...s.c, 1]);
+    $('steel-txt').textContent = s.n + '.'; $('steel-dot').style.background = s.css;
+  }
+  $('steel-dot').style.background = STEEL[0].css;
+
+  function toggleNormal() {
+    bronzeNormal = !bronzeNormal; apply('bronze');
+    normBtn.setAttribute('aria-pressed', bronzeNormal); normBtn.textContent = bronzeNormal ? 'Activado' : 'Desactivado';
+    $('norm-txt').textContent = bronzeNormal ? 'Activado: el martillado da relieve.' : 'Desactivado: el bronce queda liso.';
+  }
+})();
+</script>
+
+</body>
+</html>
