@@ -90,9 +90,6 @@
   td:not(:first-child) { font-family: var(--font-mono); font-size: .78rem; }
   .scroll { overflow-x: auto; }
   .note { color: var(--muted); font-size: .8rem; margin: 10px 0 0; }
-  .spec { display: flex; flex-wrap: wrap; gap: 6px 28px; margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line); font-size: .8rem; color: var(--muted); }
-  .spec b { font: 500 10px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; margin-right: 8px; }
-  .spec span { white-space: nowrap; }
   @media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } model-viewer { height: 56vh; min-height: 340px; } }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
@@ -134,13 +131,6 @@
       </section>
     </aside>
   </div>
-  <footer class="spec">
-    <span><b>Triángulos</b> 3 440</span>
-    <span><b>Mallas / materiales</b> 3 / 3</span>
-    <span><b>Texturas</b> 1024 × 1024 · JPG</span>
-    <span><b>Flujo</b> PBR metal / rugosidad</span>
-    <span><b>Archivo</b> escudo.glb · 1.8 MB</span>
-  </footer>
 </div>
 
 <script>
